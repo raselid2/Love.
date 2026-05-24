@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For ZyRa ❤️</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght=0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @font-face {
+            font-family: 'Satoshi';
+            src: url('https://api.fontshare.com/v2/css?f[]=satoshi@400,700&display=swap');
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Satoshi', sans-serif;
+            background-color: #0c0a09;
+            margin: 0;
+            padding: 0;
+            color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-h: 100vh;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .serif-title {
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(135deg, #ffffff 30%, #fbcfe8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 10px 0;
+        }
+
+        /* Background Aurora */
+        .aurora-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #0c0a09;
+            overflow: hidden;
+        }
+
+        .aurora-layer {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: 
+                radial-gradient(circle at 20% 30%, hsla(333, 70%, 55%, 0.3) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, hsla(282, 82%, 54%, 0.25) 0%, transparent 45%),
+                radial-gradient(circle at 40% 80%, hsla(210, 89%, 60%, 0.25) 0%, transparent 40%),
+                radial-gradient(circle at 70% 20%, hsla(35, 90%, 60%, 0.2) 0%, transparent 35%);
+            filter: blur(60px);
+            animation: auroraMove 25s ease-in-out infinite alternate;
+        }
+
+        @keyframes auroraMove {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            50% { transform: translate(-5%, 4%) rotate(4deg) scale(1.08); }
+            100% { transform: translate(4%, -5%) rotate(-3deg) scale(0.95); }
+        }
+
+        #webgl-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Top Progress Bar Layout */
+        .progress-container {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 20%;
+            background: linear-gradient(90deg, #ec4899, #f43f5e);
+            border-radius: 999px;
+            transition: width 0.5s ease;
+        }
+
+        /* Card Container Window */
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 92%;
+            max-width: 500px;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Guaranteed Glassmorphism Card System using Raw CSS Layouts */
+        .glass-card {
+            background: rgba(20, 16, 16, 0.75) !important;
+            backdrop-filter: blur(25px) !important;
+            -webkit-backdrop-filter: blur(25px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 28px;
+            padding: 35px 25px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            
+            position: absolute;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.9) translateY(40px);
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        visibility 0.4s;
+        }
+
+        .glass-card.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: scale(1) translateY(0) !important;
+            position: relative; /* Allows content block to establish true height layout natively */
+        }
+
+        .glass-card.exit {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transform: scale(0.95) translateY(-40px) !important;
+            position: absolute;
+        }
+
+        /* Pill Buttons with Inline Style Backups */
+        .btn-glow {
+            background: linear-gradient(135deg, #ec4899, #f43f5e) !important;
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.5) !important;
+            color: #ffffff !important;
+            border: none;
+            outline: none;
+            padding: 12px 36px;
+            border-radius: 999px;
+            font-family: 'Satoshi', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 0 30px rgba(244, 63, 94, 0.8) !important;
+        }
+
+        .heart-beat {
+            font-size: 65px;
+            animation: heartBeat 1.6s infinite cubic-bezier(0.215, 0.610, 0.355, 1);
+            filter: drop-shadow(0 0 20px rgba(244, 63, 94, 0.5));
+            line-height: 1;
+        }
+
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.2); }
+            30% { transform: scale(1.05); }
+            45% { transform: scale(1.25); }
+            70% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Bento Grid Framework */
+        .bento-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .bento-cell {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 15px;
+        }
+
+        .bento-title {
+            color: #f472b6;
+            font-weight: 700;
+            font-size: 15px;
+            margin: 0 0 4px 0;
+        }
+
+        .bento-desc {
+            color: #d1d5db;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Polaroid Layout */
+        .polaroid-frame {
+            background: #ffffff;
+            padding: 12px 12px 20px 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: rotate(-2deg);
+            max-width: 230px;
+            margin: 10px 0;
+        }
+
+        .polaroid-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 2px;
+            background-color: #292524;
+        }
+
+        .polaroid-caption {
+            font-family: 'Playfair Display', serif;
+            color: #374151;
+            margin: 12px 0 0 0;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        p.body-text {
+            color: #d1d5db;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="aurora-bg">
+        <div class="aurora-layer"></div>
+    </div>
+
+    <div id="webgl-container"></div>
+
+    <div class="progress-container">
+        <div id="progress-indicator" class="progress-bar"></div>
+    </div>
+
+    <div class="main-wrapper">
+        
+        <div id="step-1" class="glass-card active">
+            <div class="heart-beat">❤️</div>
+            <h1 class="serif-title" style="font-size: 36px;">Hey Beautiful,</h1>
+            <p class="body-text">I love you so much ZyRa.</p>
+            <button onclick="navigateToStep(2)" class="btn-glow">Let's Begin</button>
+        </div>
+
+        <div id="step-2" class="glass-card">
+            <div style="font-size: 45px; line-height:1;">🎉</div>
+            <h2 class="serif-title" style="font-size: 30px;">I love you!</h2>
+            <p class="body-text" style="margin-bottom: 8px;">Every moment with you feels like my favorite memory being written in real time.</p>
+            <p class="body-text" style="margin-bottom: 8px;">Your smile gives my heart peace in ways words can never fully explain.</p>
+            <p class="body-text">No matter how busy life gets, you’ll always be the most beautiful part of my world.</p>
+            <button onclick="navigateToStep(3)" class="btn-glow">There's more...</button>
+        </div>
+
+        <div id="step-3" class="glass-card">
+            <h2 class="serif-title" style="font-size: 26px;">A Few Things I Adore About You</h2>
+            <div class="bento-grid">
+                <div class="bento-cell">
+                    <h3 class="bento-title">✨ Your Unmatched Kindness</h3>
+                    <p class="bento-desc">The genuine warmth you show to everyone is something truly rare and beautiful.</p>
+                </div>
+                <div class="bento-cell">
+                    <h3 class="bento-title">😊 That Smile</h3>
+                    <p class="bento-desc">It's a work of art.</p>
+                </div>
+                <div class="bento-cell">
+                    <h3 class="bento-title">🌟 Your Radiant Spirit</h3>
+                    <p class="bento-desc">Your passion for life is infectious. Being around you makes everything feel more exciting.</p>
+                </div>
+            </div>
+            <button onclick="navigateToStep(4)" class="btn-glow">Remember this?</button>
+        </div>
+
+        <div id="step-4" class="glass-card">
+            <h2 class="serif-title" style="font-size: 30px;">That One Time...</h2>
+            <div class="polaroid-frame">
+                <img src="https://i.ibb.co/6Z6XgCg/crush.webp" alt="Memory Frame" class="polaroid-img" onerror="this.src='https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=600'">
+                <p class="polaroid-caption">Our favorite memory.</p>
+            </div>
+            <p class="body-text">Every moment with you feels like a scene from a movie I'd watch on repeat.</p>
+            <button onclick="navigateToStep(5)" class="btn-glow">One last thing...</button>
+        </div>
+
+        <div id="step-5" class="glass-card">
+            <div style="font-size: 45px; line-height:1;">💝</div>
+            <h2 class="serif-title" style="font-size: 30px;">My Wish For You</h2>
+            <p class="body-text" style="margin-bottom: 8px;">You are the kind of person who makes ordinary days feel special without even trying.</p>
+            <p class="body-text" style="margin-bottom: 8px;">The way you care, laugh, and stay by my side makes me fall for you more every day.</p>
+            <p class="body-text">If I could choose one place to stay forever, it would always be beside you.</p>
+            
+            <div id="proposal-target" style="display: none; opacity: 0; transition: all 0.8s ease; transform: translateY(15px);">
+                <h2 class="serif-title" style="font-size: 26px; font-weight: 900; margin-top: 15px; text-shadow: 0 0 15px rgba(244,63,94,0.4);">will you marry me ?, my wife! ❤️</h2>
+            </div>
+            <button id="final-love-btn" onclick="triggerGrandFinale()" class="btn-glow" style="padding: 14px 44px; font-size: 18px;">love!</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 5;
+
+        // Ultra-stable Native Switching Logic
+        function navigateToStep(targetIndex) {
+            const currentCard = document.getElementById(`step-${currentStep}`);
+            const nextCard = document.getElementById(`step-${targetIndex}`);
+
+            if (currentCard && nextCard) {
+                currentCard.classList.remove('active');
+                currentCard.classList.add('exit');
+
+                setTimeout(() => {
+                    nextCard.classList.remove('exit');
+                    nextCard.classList.add('active');
+                }, 50);
+
+                currentStep = targetIndex;
+                document.getElementById('progress-indicator').style.width = `${(currentStep / totalSteps) * 100}%`;
+            }
+        }
+
+        // WebGL Floating Background Logic
+        let scene, camera, renderer, heartsArray = [];
+        try {
+            const container = document.getElementById('webgl-container');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            let dirLight = new THREE.DirectionalLight(0xffb6c1, 1.2);
+            dirLight.position.set(5, 10, 7);
+            scene.add(dirLight);
+
+            function createHeartGeometry() {
+                const shape = new THREE.Shape();
+                shape.moveTo(2.5, 2.5);
+                shape.bezierCurveTo(2.5, 2.5, 2, 0, 0, 0);
+                shape.bezierCurveTo(-3, 0, -3, 3.5, -3, 3.5);
+                shape.bezierCurveTo(-3, 5.5, -1.5, 7.7, 2.5, 9.5);
+                shape.bezierCurveTo(6.5, 7.7, 8, 5.5, 8, 3.5);
+                shape.bezierCurveTo(8, 3.5, 8, 0, 5, 0);
+                shape.bezierCurveTo(3.5, 0, 2.5, 2.5, 2.5, 2.5);
+
+                const extrudeSettings = { depth: 0.8, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.4, bevelThickness: 0.4 };
+                const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                geometry.center();
+                geometry.rotateZ(Math.PI);
+                return geometry;
+            }
+
+            const heartGeo = createHeartGeometry();
+            for (let i = 0; i < 20; i++) {
+                const colors = [0xf43f5e, 0xec4899, 0xf472b6];
+                const material = new THREE.MeshPhongMaterial({ color: colors[Math.floor(Math.random() * colors.length)], shininess: 30 });
+                const mesh = new THREE.Mesh(heartGeo, material);
+                
+                mesh.position.set((Math.random() - 0.5) * 55, (Math.random() - 0.5) * 40, (Math.random() - 0.5) * 25);
+                mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                const scale = Math.random() * 0.16 + 0.12;
+                mesh.scale.set(scale, scale, scale);
+
+                mesh.userData = {
+                    speedY: Math.random() * 0.02 + 0.01,
+                    waveSpeed: Math.random() * 0.02 + 0.01,
+                    waveSeed: Math.random() * 100,
+                    rotSpeedX: (Math.random() - 0.5) * 0.01,
+                    rotSpeedY: (Math.random() - 0.5) * 0.01,
+                    isExploding: false
+                };
+                scene.add(mesh);
+                heartsArray.push(mesh);
+            }
+
+            function animateThreeScene() {
+                requestAnimationFrame(animateThreeScene);
+                heartsArray.forEach(heart => {
+                    if (!heart.userData.isExploding) {
+                        heart.position.y += heart.userData.speedY;
+                        heart.userData.waveSeed += heart.userData.waveSpeed;
+                        heart.position.x += Math.sin(heart.userData.waveSeed) * 0.015;
+                        heart.rotation.x += heart.userData.rotSpeedX;
+                        heart.rotation.y += heart.userData.rotSpeedY;
+                        if (heart.position.y > 25) { heart.position.y = -25; heart.position.x = (Math.random() - 0.5) * 55; }
+                    } else {
+                        heart.position.x += heart.userData.velX;
+                        heart.position.y += heart.userData.velY;
+                        heart.scale.multiplyScalar(0.97);
+                    }
+                });
+                renderer.render(scene, camera);
+            }
+            animateThreeScene();
+        } catch(e) { console.log("WebGL Canvas offline."); }
+
+        // Finale Orchestrator Sequence
+        function triggerGrandFinale() {
+            const finalBtn = document.getElementById('final-love-btn');
+            const targetContainer = document.getElementById('proposal-target');
+            
+            finalBtn.style.opacity = '0';
+            setTimeout(() => { finalBtn.style.display = 'none'; }, 400);
+
+            targetContainer.style.display = 'block';
+            setTimeout(() => {
+                targetContainer.style.opacity = '1';
+                targetContainer.style.transform = 'translateY(0)';
+            }, 100);
+
+            if (typeof confetti !== 'undefined') {
+                confetti({ particleCount: 60, spread: 60, origin: { x: 0, y: 0.9 }, angle: 45 });
+                confetti({ particleCount: 60, spread: 60, origin: { x: 1, y: 0.9 }, angle: 135 });
+                const end = Date.now() + 5000;
+                (function frame() {
+                    if (Date.now() > end) return;
+                    confetti({ particleCount: 2, startVelocity: 20, spread: 360, origin: { x: Math.random(), y: Math.random() * 0.4 - 0.1 } });
+                    requestAnimationFrame(frame);
+                }());
+            }
+
+            heartsArray.forEach(heart => {
+                heart.userData.isExploding = true;
+                const angle = Math.random() * Math.PI * 2;
+                heart.userData.velX = Math.cos(angle) * 0.3;
+                heart.userData.velY = Math.random() * 0.4 + 0.3;
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            if(camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+    </script>
+</body>
+</html>
